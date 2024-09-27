@@ -1,5 +1,3 @@
-all: run
-
 build:
 	@go build -o ./bin/todoapi ./cmd/api/main.go
 
