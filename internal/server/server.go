@@ -27,14 +27,7 @@ func (s *APIServer) Run() error {
 	RegisterUserRoutes(subrouter, s.db)
 	RegisterTodoRoutes(subrouter, s.db)
 
-	router.Use(logMW)
+	router.Use(LogMW, AuthMW)
 	log.Printf("Server is up and running on port: %v", s.addr[1:])
 	return http.ListenAndServe(s.addr, router)
-}
-
-func logMW(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s - %s (%s)", r.Method, r.URL.Path, r.RemoteAddr)
-		next.ServeHTTP(w, r)
-	})
 }
