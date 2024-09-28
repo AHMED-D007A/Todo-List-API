@@ -13,7 +13,7 @@ type Config struct {
 	DB_USERNAME string
 	DB_PASSWORD string
 	DB_NAME     string
-	JWT_SECRET  string
+	JWT_SECRET  []byte
 }
 
 var Envs = InitConfig()

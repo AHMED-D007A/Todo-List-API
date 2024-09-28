@@ -22,12 +22,14 @@ func NewAPIServer(addr string, db *sql.DB) *APIServer {
 
 func (s *APIServer) Run() error {
 	router := mux.NewRouter()
-	subrouter := router.PathPrefix("/api/v1/").Subrouter()
+	User_subrouter := router.PathPrefix("/api/v1/").Subrouter()
+	Todo_subrouter := router.PathPrefix("/api/v1/").Subrouter()
+	router.Use(LogMW)
+	Todo_subrouter.Use(AuthMW)
 
-	RegisterUserRoutes(subrouter, s.db)
-	RegisterTodoRoutes(subrouter, s.db)
+	RegisterUserRoutes(User_subrouter, s.db)
+	RegisterTodoRoutes(Todo_subrouter, s.db)
 
-	router.Use(LogMW, AuthMW)
 	log.Printf("Server is up and running on port: %v", s.addr[1:])
 	return http.ListenAndServe(s.addr, router)
 }

@@ -24,8 +24,9 @@ func (uh *UserHandler) RegisterNewUserHandler(w http.ResponseWriter, r *http.Req
 	var userpayload UserPayload
 	err := json.NewDecoder(r.Body).Decode(&userpayload)
 	if err != nil {
-		log.Print(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
+		log.Print(err.Error())
+		w.Write([]byte(err.Error()))
 		return
 	}
 	userpayload.Password, err = bcrypt.GenerateFromPassword([]byte(userpayload.Password), 14)
@@ -44,8 +45,9 @@ func (uh *UserHandler) RegisterNewUserHandler(w http.ResponseWriter, r *http.Req
 
 	err = uh.storage.RegisterNewUserStorage(&userpayload)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		log.Print(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -66,13 +68,20 @@ func (uh *UserHandler) VerifiyUserHandler(w http.ResponseWriter, r *http.Request
 	user, err := uh.storage.VerifiyUserStorage(&userpayload)
 	if err != nil {
 		log.Print(err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		if err.Error() == "not Found" {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("This Email is Not Registered"))
+			return
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword(user.Password, userpayload.Password)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("The email or the password are wrong."))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -83,7 +92,7 @@ func (uh *UserHandler) VerifiyUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response := fmt.Sprintf("{\n\t\"token\": \"%v\"\n}", token)
+	response := fmt.Sprintf("{\"token\": \"%v\"}", token)
 
 	w.Write([]byte(response))
 }
