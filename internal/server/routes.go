@@ -20,4 +20,5 @@ func RegisterTodoRoutes(router *mux.Router, db *sql.DB) {
 
 	/* a route where a user create list with these fields:(title) */
 	router.HandleFunc("/lists", todoHandler.CreateNewList).Methods("POST")
+	router.HandleFunc("/lists", todoHandler.GetLists).Methods("GET")
 }

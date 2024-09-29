@@ -20,7 +20,7 @@ func NewTodoHandler(storage *TodoStorage) *TodoHandler {
 }
 
 func (th *TodoHandler) CreateNewList(w http.ResponseWriter, r *http.Request) {
-	var list TodoList
+	var list TodoListPayload
 	err := json.NewDecoder(r.Body).Decode(&list)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -50,6 +50,32 @@ func (th *TodoHandler) CreateNewList(w http.ResponseWriter, r *http.Request) {
 
 	newList := fmt.Sprintf("{\"New List\": \"list_%v_%v\"}", user_id, list_id)
 	w.Write([]byte(newList))
+}
+
+func (th *TodoHandler) GetLists(w http.ResponseWriter, r *http.Request) {
+	tokenStr := r.Header.Get("Authorization")[7:]
+	email, err := internal.ParseToken(tokenStr)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Print(err.Error())
+		return
+	}
+
+	lists, err := th.storage.GetAllLists(email)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Print(err.Error())
+		return
+	}
+
+	data, err := json.MarshalIndent(lists, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Print(err.Error())
+		return
+	}
+
+	w.Write(data)
 }
 
 // func (th *TodoHandler) func(w http.ResponseWriter, r *http.Request) {}

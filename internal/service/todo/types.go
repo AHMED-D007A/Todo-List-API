@@ -1,5 +1,17 @@
 package todo
 
-type TodoList struct {
+type TodoListPayload struct {
 	Title string `json:"title"`
+}
+
+type TodoList struct {
+	ListID    int    `json:"list_id"`
+	UserID    int    `json:"user_id"`
+	Title     string `json:"title"`
+	CreatedAt string `json:"created_at"`
+}
+
+type TodoItemPayload struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }

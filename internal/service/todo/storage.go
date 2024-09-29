@@ -15,7 +15,7 @@ func NewTodoStorage(db *sql.DB) *TodoStorage {
 	}
 }
 
-func (ts *TodoStorage) CreateListRecord(list *TodoList, email string) (int, int, error) {
+func (ts *TodoStorage) CreateListRecord(list *TodoListPayload, email string) (int, int, error) {
 	query := "SELECT id FROM users WHERE email=$1"
 	var id int
 
@@ -87,6 +87,41 @@ EXECUTE FUNCTION update_updated_at_column();`, id, list_id)
 	}
 
 	return id, list_id, nil
+}
+
+func (ts *TodoStorage) GetAllLists(email string) ([]TodoList, error) {
+	query := "SELECT id FROM users WHERE email=$1"
+	var id int
+
+	records, err := ts.db.Query(query, email)
+	if err != nil {
+		return []TodoList{}, err
+	}
+
+	for records.Next() {
+		if err = records.Scan(&id); err != nil {
+			return []TodoList{}, err
+		}
+	}
+
+	query = "SELECT * FROM lists WHERE user_id=$1;"
+	var lists []TodoList
+
+	records, err = ts.db.Query(query, id)
+	if err != nil {
+		return []TodoList{}, err
+	}
+
+	for i := 0; records.Next(); i++ {
+		var list TodoList
+		err = records.Scan(&list.ListID, &list.UserID, &list.Title, &list.CreatedAt)
+		if err != nil {
+			return []TodoList{}, err
+		}
+		lists = append(lists, list)
+	}
+
+	return lists, nil
 }
 
 // func (ts *TodoStorage) func() {}
