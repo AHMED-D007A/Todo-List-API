@@ -21,4 +21,9 @@ func RegisterTodoRoutes(router *mux.Router, db *sql.DB) {
 	/* a route where a user create list with these fields:(title) */
 	router.HandleFunc("/lists", todoHandler.CreateNewList).Methods("POST")
 	router.HandleFunc("/lists", todoHandler.GetLists).Methods("GET")
+
+	router.HandleFunc("/lists/{signature}/todos", todoHandler.GetItems).Methods("GET")
+	router.HandleFunc("/lists/{signature}/todos", todoHandler.CreateNewItem).Methods("POST")
+	router.HandleFunc("/lists/{signature}/todos/{todo_id}", todoHandler.UpdateItem).Methods("PUT")
+	router.HandleFunc("/lists/{signature}/todos/{todo_id}", todoHandler.DeleteItem).Methods("DELETE")
 }

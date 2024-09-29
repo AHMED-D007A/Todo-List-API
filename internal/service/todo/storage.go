@@ -54,6 +54,7 @@ func (ts *TodoStorage) CreateListRecord(list *TodoListPayload, email string) (in
 todo_id SERIAL PRIMARY KEY,
 todo_title VARCHAR(100) NOT NULL,
 todo_description TEXT,
+todo_status VARCHAR(10) DEFAULT 'inprogress',
 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );`, id, list_id)
@@ -122,6 +123,85 @@ func (ts *TodoStorage) GetAllLists(email string) ([]TodoList, error) {
 	}
 
 	return lists, nil
+}
+
+func (ts *TodoStorage) CreateItemRecord(signature string, payload *TodoItemPayload) (TodoItem, error) {
+	query := fmt.Sprintf("INSERT INTO %v(todo_title, todo_description) VALUES($1, $2)", signature)
+	_, err := ts.db.Exec(query, payload.Title, payload.Description)
+	if err != nil {
+		return TodoItem{}, err
+	}
+
+	var newItem TodoItem
+	query = fmt.Sprintf("SELECT * FROM %v ORDER BY todo_id DESC LIMIT 1;", signature)
+	record, err := ts.db.Query(query)
+	if err != nil {
+		return TodoItem{}, err
+	}
+
+	if record.Next() {
+		err := record.Scan(&newItem.ID, &newItem.Title, &newItem.Description, &newItem.Status, &newItem.CreatedAt, &newItem.UpdatedAt)
+		if err != nil {
+			return TodoItem{}, err
+		}
+	}
+
+	return newItem, nil
+}
+
+func (ts *TodoStorage) UpdateItemRecord(signature string, todo_id string, item TodoItemPayload) (TodoItem, error) {
+	query := fmt.Sprintf("UPDATE %v SET todo_title='%v', todo_description='%v', todo_status='%v'", signature, item.Title, item.Description, item.Status)
+	_, err := ts.db.Exec(query)
+	if err != nil {
+		return TodoItem{}, err
+	}
+
+	var record TodoItem
+
+	query = fmt.Sprintf("SELECT * FROM %v WHERE todo_id=%v", signature, todo_id)
+	records, err := ts.db.Query(query)
+	if err != nil {
+		return TodoItem{}, err
+	}
+
+	if records.Next() {
+		err = records.Scan(&record.ID, &record.Title, &record.Description, &record.Status, &record.CreatedAt, &record.UpdatedAt)
+		if err != nil {
+			return TodoItem{}, err
+		}
+	}
+
+	return record, nil
+}
+
+func (ts *TodoStorage) DeleteItemRecord(signature string, todo_id string) error {
+	query := fmt.Sprintf("DELETE FROM %v WHERE todo_id=$1", signature)
+	_, err := ts.db.Exec(query, todo_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ts *TodoStorage) GetAllItems(signature string) ([]TodoItem, error) {
+	query := fmt.Sprintf("SELECT * FROM %v;", signature)
+	records, err := ts.db.Query(query)
+	if err != nil {
+		return []TodoItem{}, err
+	}
+
+	var items []TodoItem
+	for i := 0; records.Next(); i++ {
+		var item TodoItem
+		err := records.Scan(&item.ID, &item.Title, &item.Description, &item.Status, &item.CreatedAt, &item.UpdatedAt)
+		if err != nil {
+			return []TodoItem{}, err
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
 }
 
 // func (ts *TodoStorage) func() {}
