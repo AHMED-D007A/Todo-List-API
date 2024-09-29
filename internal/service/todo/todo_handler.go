@@ -124,7 +124,7 @@ func (th *TodoHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if payload.Title == "" && payload.Description == "" && payload.Status == "" {
+	if payload.Title == "" || payload.Description == "" || payload.Status == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
