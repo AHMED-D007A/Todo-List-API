@@ -18,5 +18,6 @@ func RegisterUserRoutes(router *mux.Router, db *sql.DB) {
 func RegisterTodoRoutes(router *mux.Router, db *sql.DB) {
 	todoHandler := todo.NewTodoHandler(todo.NewTodoStorage(db))
 
+	/* a route where a user create list with these fields:(title) */
 	router.HandleFunc("/lists", todoHandler.CreateNewList).Methods("POST")
 }

@@ -2,6 +2,7 @@ package todo
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -27,6 +28,11 @@ func (th *TodoHandler) CreateNewList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if list.Title == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	tokenStr := r.Header.Get("Authorization")[7:]
 	email, err := internal.ParseToken(tokenStr)
 	if err != nil {
@@ -35,12 +41,15 @@ func (th *TodoHandler) CreateNewList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = th.storage.CreateListRecord(&list, email)
+	user_id, list_id, err := th.storage.CreateListRecord(&list, email)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Print(err.Error())
 		return
 	}
+
+	newList := fmt.Sprintf("{\"New List\": \"list_%v_%v\"}", user_id, list_id)
+	w.Write([]byte(newList))
 }
 
 // func (th *TodoHandler) func(w http.ResponseWriter, r *http.Request) {}

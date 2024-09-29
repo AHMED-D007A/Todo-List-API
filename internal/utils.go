@@ -28,6 +28,10 @@ func CreateToken(Name string, Email string) (string, error) {
 	return tokenStr, nil
 }
 
+/*
+	 A function that takes the token string and parse it to get the claims
+		and return the email field of the custom claims and err.
+*/
 func ParseToken(tokenStr string) (string, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &CustomClaims{}, func(t *jwt.Token) (interface{}, error) {
 		alg := t.Method.Alg()

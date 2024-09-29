@@ -7,7 +7,7 @@ type UserPayload struct {
 }
 
 type User struct {
-	ID        uint64
+	ID        int
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	Password  []byte `json:"password"`
